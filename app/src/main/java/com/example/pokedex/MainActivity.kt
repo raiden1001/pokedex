@@ -9,8 +9,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.pokedex.data.local.PokemonDetails
+import com.example.pokedex.pokemonList.PokemonHomeScreen
 import com.example.pokedex.ui.theme.PokedexTheme
+import com.google.gson.annotations.SerializedName
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.serialization.Serializable
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -24,7 +27,7 @@ class MainActivity : ComponentActivity() {
                     startDestination = PokemonLists,
                 ){
                     composable<PokemonLists> {
-
+                        PokemonHomeScreen(navController)
                     }
                     composable<PokemonDetails> {
                         val args = it.toRoute<PokemonDetails>()
@@ -36,6 +39,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Serializable
 object PokemonLists
 
 

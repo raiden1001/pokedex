@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.org.jetbrains.kotlin.kapt)
 }
 
 android {
@@ -16,7 +17,7 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
+        multiDexEnabled =  true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -52,6 +53,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.palette.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -62,7 +64,7 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.hilt)
-    implementation(libs.hilt.compiler)
+    kapt(libs.hilt.compiler)
     //Hilt Navigation Compose
     implementation(libs.hilt.navigation.compose)
     //retrofit
@@ -72,4 +74,9 @@ dependencies {
     implementation(libs.converter.gson)
     //timber
     implementation(libs.timber)
+    //coil
+   // implementation("io.coil-kt:coil:0.9.1")
+    //implementation("com.google.accompanist:accompanist-coil:0.10.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
 }
