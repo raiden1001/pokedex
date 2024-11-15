@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -36,6 +37,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -43,7 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.pokedex.R
 import com.example.pokedex.data.local.PokemonDetails
 import com.example.pokedex.data.models.PokedexList
@@ -90,7 +94,7 @@ fun PokeSearchBar(
     var text by remember { mutableStateOf("") }
     var isHintDisplayed by remember { mutableStateOf(hint != "") }
 
-    Box(modifier = Modifier) {
+    Box(modifier = modifier) {
         BasicTextField(
             maxLines = 1,
             singleLine = true,
@@ -129,28 +133,43 @@ fun PokemonList(
     val endReached by remember { viewModel.endReached }
     val loadError by remember { viewModel.loadError }
     val isLoading by remember { viewModel.isLoading }
+    //val isSearching by remember { viewModel.isSearching }
 
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
-        val itemCount =
-            if (pokemonList.size % 2 == 0) {
+        val itemCount = if (pokemonList.size % 2 == 0) {
             pokemonList.size / 2
         } else {
-            (pokemonList.size / 2) + 1
+            pokemonList.size / 2 + 1
         }
         items(itemCount) {
-            if (!endReached && it >= itemCount - 1) {
+            if (it >= itemCount - 1 && !endReached && !isLoading /*&& !isSearching*/) {
                 viewModel.loadPokemonPaginated()
             }
-            PokedexRow(entries = pokemonList, navController = navController, rowIndex = it)
+            PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
     }
+
+    Box(
+        contentAlignment = Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+        /*if(loadError.isNotEmpty()) {
+            RetrySection(error = loadError) {
+                viewModel.loadPokemonPaginated()
+            }
+        }*/
+    }
+
 }
 
 @Composable
 fun PokedexListEntry(
     entry: PokedexList,
     navController: NavController,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
     val defaultDominantColor = MaterialTheme.colorScheme.surface
@@ -160,7 +179,7 @@ fun PokedexListEntry(
 
     Box(
         //contentAlignment = Center,
-        modifier = Modifier
+        modifier = modifier
             .shadow(5.dp, RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(10.dp))
             .aspectRatio(1f)
@@ -171,53 +190,58 @@ fun PokedexListEntry(
                 )
             }
     ) {
-        Column(Modifier.align(Center)) {
-            var isImageLoading by remember { mutableStateOf(true) }
-         /*   Box(
-                modifier = modifier
-                    .size(100.dp)
-                    .background(dominantColor) // Apply the dominant color as a background
-                    .align(CenterHorizontally),
-                contentAlignment = Center
-            ) {*/
+        Column {
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(entry.imgUrl)
+                    .crossfade(true)
+                    .build()
+            )
 
-                if (isImageLoading) {
+            Image(
+                painter = painter,
+                contentDescription = entry.name,
+                modifier = Modifier
+                    .size(150.dp)
+                    .align(CenterHorizontally)
+                    .background(Color.Transparent)
+            )
 
+            when (painter.state) {
+                is AsyncImagePainter.State.Loading -> {
                     CircularProgressIndicator(
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.scale(0.5f)
+                        modifier = Modifier
+                            .align(CenterHorizontally)
+                            .scale(0.5f)
                     )
                 }
 
-                Image(
-                    painter = rememberImagePainter(
-                        data = entry.imgUrl,
-                        builder = {
-                            listener(
-                                onSuccess = { _, result ->
-                                    isImageLoading = false
-                                    viewModel.calcDominantColor(result.drawable) { color ->
-                                        dominantColor = color
-                                    }
-                                },
-                                onError = { _, _ -> isImageLoading = false }
-                            )
+                is AsyncImagePainter.State.Success -> {
+                    // Retrieve the image bitmap to calculate dominant color
+                    val imageBitmap =
+                        (painter.state as? AsyncImagePainter.State.Success)?.result?.drawable
+                    imageBitmap?.let {
+                        viewModel.calcDominantColor(it) { color ->
+                            dominantColor = color
                         }
-                    ),
-                    contentDescription = entry.name,
-                    modifier = Modifier.fillMaxSize()
-                )
+                    }
+                }
+                // Handle other states if needed
+                AsyncImagePainter.State.Empty -> TODO()
+                is AsyncImagePainter.State.Error -> TODO()
             }
+
             Text(
                 text = entry.name,
                 fontFamily = RobotoCondensed,
+                fontSize = 20.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-                fontSize = 20.sp
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
-//}
+}
 
 @Composable
 fun PokedexRow(
@@ -232,8 +256,10 @@ fun PokedexRow(
                 navController = navController,
                 modifier = Modifier.weight(1f)
             )
+
             Spacer(modifier = Modifier.width(16.dp))
-            if(entries.size >= rowIndex * 2 + 2) {
+
+            if (rowIndex * 2 + 1 < entries.size) {
                 PokedexListEntry(
                     entry = entries[rowIndex * 2 + 1],
                     navController = navController,

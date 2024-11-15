@@ -75,8 +75,8 @@ dependencies {
     //timber
     implementation(libs.timber)
     //coil
-   // implementation("io.coil-kt:coil:0.9.1")
-    //implementation("com.google.accompanist:accompanist-coil:0.10.0")
-    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation ("io.coil-kt:coil-compose:2.7.0")
+    //implementation ("com.google.accompanist:accompanist-coil:0.10.0")
+    //implementation("io.coil-kt:coil-compose:2.7.0")
 
 }
