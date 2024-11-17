@@ -7,14 +7,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.palette.graphics.Palette
 import com.example.pokedex.data.models.PokedexList
 import com.example.pokedex.repository.PokemonRepository
 import com.example.pokedex.util.Constants.PAGE_SIZE
 import com.example.pokedex.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import java.util.Locale
 
 @HiltViewModel
@@ -26,9 +29,45 @@ class PokemonListViewModel @Inject constructor(
     var loadError = mutableStateOf("")
     var isLoading = mutableStateOf(false)
     var endReached = mutableStateOf(false)
+    var isSearching = mutableStateOf(false)
+
+
+    private var cachedPokemonList = listOf<PokedexList>()
+    private var isSearchStart: Boolean = false
+
 
     init {
         loadPokemonPaginated()
+    }
+
+    fun searchPokemonList(query: String) {
+        val listToSearch = if (isSearchStart) {
+            pokemonList.value
+        } else {
+            cachedPokemonList
+        }
+
+        viewModelScope.launch(Dispatchers.Default) {
+            if (query.isEmpty()) {
+                pokemonList.value = cachedPokemonList
+                isSearching.value = false
+                isSearchStart = true
+                return@launch
+            }
+
+            val results = listToSearch.filter {
+                it.name.contains(query.trim(), ignoreCase = true) || it.number.toString()
+                    .contains(query.trim())
+            }
+
+            if (isSearchStart) {
+                cachedPokemonList = pokemonList.value
+                isSearchStart = false
+            }
+
+            pokemonList.value = results
+            isSearching.value = true
+        }
     }
 
     fun calcDominantColor(drawable: Drawable, onFinished: (Color) -> Unit) {
@@ -43,7 +82,7 @@ class PokemonListViewModel @Inject constructor(
     fun loadPokemonPaginated() {
         viewModelScope.launch {
             isLoading.value = true
-            val result = repository.getPokemonList(PAGE_SIZE, currentPage * PAGE_SIZE)
+            val result = repository.getPokemonList(1302, 0)
             when (result) {
                 is Resource.Success -> {
                     endReached.value = PAGE_SIZE * currentPage >= result.data!!.count

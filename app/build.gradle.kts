@@ -79,4 +79,7 @@ dependencies {
     //implementation ("com.google.accompanist:accompanist-coil:0.10.0")
     //implementation("io.coil-kt:coil-compose:2.7.0")
 
+    //logging interceptor for caching
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
+
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -56,8 +59,8 @@ import com.example.pokedex.ui.theme.RobotoCondensed
 @Composable
 fun PokemonHomeScreen(
     navController: NavController,
-
-    ) {
+    viewModel: PokemonListViewModel = hiltViewModel()
+) {
     Surface(
         color = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize()
@@ -76,12 +79,13 @@ fun PokemonHomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp),
-            )
+            ) {
+                viewModel.searchPokemonList(it)
+            }
             Spacer(modifier = Modifier.height(20.dp))
 
             PokemonList(navController)
         }
-
     }
 }
 
@@ -105,7 +109,7 @@ fun PokeSearchBar(
                 .background(Color.White, CircleShape)
                 .padding(horizontal = 12.dp, vertical = 12.dp)
                 .onFocusChanged {
-                    isHintDisplayed = !it.isFocused
+                    isHintDisplayed = !it.isFocused && text.isNotEmpty()
                 },
             value = text,
             onValueChange = {
@@ -120,7 +124,6 @@ fun PokeSearchBar(
                 style = TextStyle(color = Color.Blue)
             )
         }
-
     }
 }
 
@@ -133,7 +136,7 @@ fun PokemonList(
     val endReached by remember { viewModel.endReached }
     val loadError by remember { viewModel.loadError }
     val isLoading by remember { viewModel.isLoading }
-    //val isSearching by remember { viewModel.isSearching }
+    val isSearching by remember { viewModel.isSearching }
 
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
         val itemCount = if (pokemonList.size % 2 == 0) {
@@ -143,7 +146,7 @@ fun PokemonList(
         }
         items(itemCount) {
             if (it >= itemCount - 1 && !endReached && !isLoading /*&& !isSearching*/) {
-                viewModel.loadPokemonPaginated()
+                // viewModel.loadPokemonPaginated()
             }
             PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
@@ -178,7 +181,7 @@ fun PokedexListEntry(
     }
 
     Box(
-        //contentAlignment = Center,
+        contentAlignment = Center,
         modifier = modifier
             .shadow(5.dp, RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(10.dp))
@@ -190,7 +193,7 @@ fun PokedexListEntry(
                 )
             }
     ) {
-        Column {
+        Column(Modifier.fillMaxSize()) {
             val painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(entry.imgUrl)
@@ -202,19 +205,28 @@ fun PokedexListEntry(
                 painter = painter,
                 contentDescription = entry.name,
                 modifier = Modifier
-                    .size(150.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(.8f)
                     .align(CenterHorizontally)
                     .background(Color.Transparent)
             )
 
             when (painter.state) {
                 is AsyncImagePainter.State.Loading -> {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary,
+                    Box(
                         modifier = Modifier
+                            .fillMaxSize()
                             .align(CenterHorizontally)
-                            .scale(0.5f)
                     )
+                    {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .aspectRatio(.5f)
+                                .align(Center)
+
+                        )
+                    }
                 }
 
                 is AsyncImagePainter.State.Success -> {
@@ -229,16 +241,41 @@ fun PokedexListEntry(
                 }
                 // Handle other states if needed
                 AsyncImagePainter.State.Empty -> TODO()
-                is AsyncImagePainter.State.Error -> TODO()
+                is AsyncImagePainter.State.Error -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .align(CenterHorizontally)
+                    )
+                    {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .aspectRatio(.5f)
+                                .align(Center)
+
+                        )
+                    }
+                }
             }
 
-            Text(
-                text = entry.name,
-                fontFamily = RobotoCondensed,
-                fontSize = 20.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+
+
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                contentAlignment = Center
+            ) {
+                Text(
+                    text = entry.name,
+                    fontFamily = RobotoCondensed,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
         }
     }
 }
