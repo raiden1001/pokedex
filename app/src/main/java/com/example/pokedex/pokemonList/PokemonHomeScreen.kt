@@ -145,8 +145,8 @@ fun PokemonList(
             pokemonList.size / 2 + 1
         }
         items(itemCount) {
-            if (it >= itemCount - 1 && !endReached && !isLoading /*&& !isSearching*/) {
-                // viewModel.loadPokemonPaginated()
+            if (it >= itemCount - 1 && !isLoading && !isSearching) {
+                viewModel.loadPokemonPaginated()
             }
             PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
@@ -258,10 +258,6 @@ fun PokedexListEntry(
                     }
                 }
             }
-
-
-
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -33,7 +33,7 @@ class PokemonListViewModel @Inject constructor(
 
 
     private var cachedPokemonList = listOf<PokedexList>()
-    private var isSearchStart: Boolean = false
+    private var isSearchStart: Boolean = true
 
 
     init {
@@ -41,30 +41,27 @@ class PokemonListViewModel @Inject constructor(
     }
 
     fun searchPokemonList(query: String) {
-        val listToSearch = if (isSearchStart) {
+        val listToSearch = if(isSearchStart) {
             pokemonList.value
         } else {
             cachedPokemonList
         }
-
         viewModelScope.launch(Dispatchers.Default) {
-            if (query.isEmpty()) {
+
+            if(query.isEmpty()) {
                 pokemonList.value = cachedPokemonList
                 isSearching.value = false
                 isSearchStart = true
                 return@launch
             }
-
             val results = listToSearch.filter {
-                it.name.contains(query.trim(), ignoreCase = true) || it.number.toString()
-                    .contains(query.trim())
+                it.name.contains(query.trim(), ignoreCase = true) ||
+                        it.number.toString() == query
             }
-
-            if (isSearchStart) {
+            if(isSearchStart) {
                 cachedPokemonList = pokemonList.value
                 isSearchStart = false
             }
-
             pokemonList.value = results
             isSearching.value = true
         }
@@ -116,6 +113,8 @@ class PokemonListViewModel @Inject constructor(
                     loadError.value = result.message!!
                     isLoading.value = false
                 }
+
+                is Resource.Loading -> TODO()
             }
         }
     }
