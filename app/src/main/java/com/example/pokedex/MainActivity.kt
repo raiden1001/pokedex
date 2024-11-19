@@ -37,9 +37,9 @@ class MainActivity : ComponentActivity() {
                         PokemonDetailScreen(
                             navController = navController,
                             dominantColorValue = args.dominantColor,
-                            pokemonName = args.pokemonName,
+                            pokemonName = args.pokemonName.lowercase(),
                             topPadding = 16.dp,
-                            pokemonImageSize = 120.dp
+                            pokemonImageSize = 200.dp
                         )
                     }
                 }

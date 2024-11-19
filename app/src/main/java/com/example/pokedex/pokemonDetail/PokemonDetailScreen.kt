@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.toColor
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -90,7 +89,8 @@ fun PokemonDetailScreen(
                 .shadow(10.dp, RoundedCornerShape(10.dp))
                 .clip(RoundedCornerShape(10.dp))
                 .background(MaterialTheme.colorScheme.surface)
-                .align(Alignment.BottomCenter)
+                .align(Alignment.BottomCenter),
+            dominantColor = dominantColor
         )
         Box(
             contentAlignment = Alignment.TopCenter,
@@ -100,7 +100,7 @@ fun PokemonDetailScreen(
                 pokemonInfo.data?.sprites.let {
                     val painter = rememberAsyncImagePainter(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(it?.frontDefault)
+                            .data(it?.front_default)
                             .crossfade(true)
                             .build()
                     )
@@ -114,6 +114,22 @@ fun PokemonDetailScreen(
                             .background(Color.Transparent)
                     )
                 }
+            }
+
+            if (pokemonInfo is Resource.Error) {
+                Text(
+                    text = "error occured", modifier = Modifier
+                        .size(pokemonImageSize)
+                        .offset(y = topPadding)
+                        .background(Color.White)
+                )
+            }
+
+            if (pokemonInfo is Resource.Loading) {
+                Text(text = "loading", modifier = Modifier
+                    .size(pokemonImageSize)
+                    .offset(y = topPadding)
+                    .background(Color.White))
             }
         }
     }
@@ -148,12 +164,13 @@ fun TopSection(
 fun StateWrapper(
     pokemonInfo: Resource<Pokemon>,
     modifier: Modifier,
-    loadingModifier: Modifier = Modifier
+    loadingModifier: Modifier = Modifier,
+    dominantColor: Color
 ) {
     when (pokemonInfo) {
-        is Resource.Success ->{}
+        is Resource.Success -> {}
         is Resource.Error -> Text(text = "error occurred", color = Color.Red, modifier = modifier)
-        is Resource.Loading -> CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        is Resource.Loading -> CircularProgressIndicator(color = dominantColor,modifier = Modifier.fillMaxSize().background(Color.Transparent))
 
     }
 

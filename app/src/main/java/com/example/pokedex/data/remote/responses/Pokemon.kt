@@ -98,13 +98,12 @@ data class Sprites (
     val backFemale: Any? = null,
     val backShiny: String,
     val backShinyFemale: Any? = null,
-    val frontDefault: String,
+    val front_default: String,
     val frontFemale: Any? = null,
     val frontShiny: String,
     val frontShinyFemale: Any? = null,
     val other: Other? = null,
     val versions: Versions? = null,
-    val animated: Sprites? = null
 )
 
 data class GenerationI (

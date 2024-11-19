@@ -1,6 +1,5 @@
 package com.example.pokedex.data.remote
 
-import androidx.compose.ui.geometry.Offset
 import com.example.pokedex.data.remote.responses.Pokemon
 import com.example.pokedex.data.remote.responses.PokemonList
 import retrofit2.http.GET
