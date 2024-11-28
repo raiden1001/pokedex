@@ -38,8 +38,8 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             dominantColorValue = args.dominantColor,
                             pokemonName = args.pokemonName.lowercase(),
-                            topPadding = 16.dp,
-                            pokemonImageSize = 200.dp
+                            topPadding = 10.dp,
+                            pokemonImageSize = 160.dp
                         )
                     }
                 }

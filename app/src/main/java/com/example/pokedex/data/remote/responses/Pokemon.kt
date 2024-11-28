@@ -34,6 +34,11 @@ data class Species (
     val url: String
 )
 
+data class StatDetail (
+    val name: String,
+    val url: String
+)
+
 data class Cries (
     val latest: String,
     val legacy: String
@@ -178,9 +183,9 @@ data class GenerationViii (
 )
 
 data class Stat (
-    val baseStat: Long,
+    val base_stat: Long,
     val effort: Long,
-    val stat: Species
+    val stat: StatDetail
 )
 
 data class Type (
