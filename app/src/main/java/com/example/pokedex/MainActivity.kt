@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
                             dominantColorValue = args.dominantColor,
                             pokemonName = args.pokemonName.lowercase(),
                             topPadding = 10.dp,
-                            pokemonImageSize = 160.dp
+                            pokemonImageSize = 200.dp
                         )
                     }
                 }
